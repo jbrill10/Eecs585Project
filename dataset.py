@@ -18,6 +18,30 @@ class PlatypusDataset:
         # Random sampling using filter
         sampled_dataset = self.data.filter(lambda x: random.random() < 0.1)  # ~10% sample
         return sampled_dataset
+    
+    def get_data_without_source(self, source_name):
+        '''
+        Return the subset of the dataset that doesn't include points from source_name
+        '''
+        return [item for item in self.data if item['data_source'] != source_name]
+    
+    def get_data_from_source(self, source_name):
+        '''
+        Return the subset of the dataset from given source_name
+        '''
+        return [item for item in self.data if item['data_source'] == source_name]
+    
+    def get_sources(self):
+        sources = set()
+        
+        for item in self.data:
+            item_source = item['data_source']
+            if item_source in sources:
+                continue
+            sources.add(item_source)
+            
+        return list(sources)
+        
 
 def main():
     """
@@ -31,6 +55,17 @@ def main():
     print(f"Dataset size: {dataset_size}")
 
     print(dataset.get_item(0))
+    
+    data_sources = dataset.get_sources()
+    
+    # for source in data_sources:
+    #     ablated_dataset = dataset.get_data_without_source(source)
+    #     source_dataset = dataset.get_data_from_source(source)
+        
+    #     print(len(ablated_dataset) + len(source_dataset))
+        
+    
+    
 
 if __name__ == "__main__":
     main()
