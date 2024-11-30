@@ -41,6 +41,21 @@ class PlatypusDataset:
         sampled_dataset = self.data.select(sampled_indices)
         return sampled_dataset
 
+    def clustering(self, num_clusters=3):
+        # Clustering by data_source
+
+        # Get unique data sources
+        unique_sources = set(self.data["data_source"])
+
+        # Define the number of clusters to sample
+        num_clusters_to_sample = num_clusters
+
+        # Randomly select clusters
+        sampled_sources = random.sample(sorted(unique_sources), num_clusters_to_sample)
+
+        sampled_dataset = self.data.filter(lambda x: x["data_source"] in sampled_sources)
+        return sampled_dataset
+
     def get_data_without_source(self, source_name):
         '''
         Return the subset of the dataset that doesn't include points from source_name
@@ -83,6 +98,9 @@ def main():
     
     # Stratified sampling
     # sampled_dataset = dataset.stratified_sample(0.1)
+
+    # Clustering
+    # sampled_dataset = dataset.clustering(3)
 
     # data_sources = dataset.get_sources()
 
