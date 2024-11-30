@@ -3,6 +3,7 @@ This file provides code for loading the Platypus dataset and doing sampling on t
 """
 from datasets import load_dataset
 import random
+from collections import defaultdict
 
 class PlatypusDataset:
     def __init__(self):
@@ -14,11 +15,32 @@ class PlatypusDataset:
     def get_item(self, index):
         return self.data[index]
 
-    def random_sample(self):
+    def random_sample(self, frac=0.1):
         # Random sampling using filter
-        sampled_dataset = self.data.filter(lambda x: random.random() < 0.1)  # ~10% sample
+        sampled_dataset = self.data.filter(lambda x: random.random() < frac)  # frac = 0.1 => ~10% sample
         return sampled_dataset
     
+    def stratified_sample(self, frac=0.1):
+        # Stratified sampling using data_source
+
+        # Group indices by data_source
+        source_groups = defaultdict(list)
+        for idx, example in enumerate(self.data):
+            source_groups[example["data_source"]].append(idx)
+
+        # Total sample size
+        total_sample_size = len(self.data) * frac
+        sampled_indices = []
+
+        # Proportional sampling
+        for source, indices in source_groups.items():
+            proportion = len(indices) / len(self.data)
+            num_samples = int(proportion * total_sample_size)
+            sampled_indices.extend(random.sample(indices, min(len(indices), num_samples)))
+
+        sampled_dataset = self.data.select(sampled_indices)
+        return sampled_dataset
+
     def get_data_without_source(self, source_name):
         '''
         Return the subset of the dataset that doesn't include points from source_name
@@ -56,8 +78,14 @@ def main():
 
     print(dataset.get_item(0))
     
-    data_sources = dataset.get_sources()
+    # Random sampling
+    # sampled_dataset = dataset.random_sample(0.1)
     
+    # Stratified sampling
+    # sampled_dataset = dataset.stratified_sample(0.1)
+
+    # data_sources = dataset.get_sources()
+
     # for source in data_sources:
     #     ablated_dataset = dataset.get_data_without_source(source)
     #     source_dataset = dataset.get_data_from_source(source)
