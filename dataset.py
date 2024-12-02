@@ -7,6 +7,9 @@ import random
 class PlatypusDataset:
     def __init__(self):
         self.data = load_dataset("garage-bAInd/Open-Platypus", split='train')
+        train_val_split = self.data.train_test_split(test_size=0.2)
+        self.train_dataset = train_val_split['train']
+        self.val_dataset = train_val_split['test']
 
     def get_length(self):
         return len(self.data)
@@ -18,6 +21,13 @@ class PlatypusDataset:
         # Random sampling using filter
         sampled_dataset = self.data.filter(lambda x: random.random() < 0.1)  # ~10% sample
         return sampled_dataset
+    
+    def get_train_data_without_source(self, source_name):
+        return [item for item in self.train_dataset if item['data_source'] != source_name]
+    
+    def get_val_data_without_source(self, source_name):
+        return [item for item in self.val_dataset if item['data_source'] != source_name]
+
     
     def get_data_without_source(self, source_name):
         '''
@@ -57,15 +67,15 @@ def main():
     print(dataset.get_item(0))
     
     data_sources = dataset.get_sources()
+    print(data_sources)
     
-    # for source in data_sources:
-    #     ablated_dataset = dataset.get_data_without_source(source)
-    #     source_dataset = dataset.get_data_from_source(source)
+    for source in data_sources:
+        train = dataset.get_train_data_without_source(source)
+        test = dataset.get_val_data_without_source(source)
         
-    #     print(len(ablated_dataset) + len(source_dataset))
-        
-    
-    
+        # print(source)
+        # print("Train: " + str(len(train)))
+        # print("Test: " + str(len(test)))
 
 if __name__ == "__main__":
     main()
