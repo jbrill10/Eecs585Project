@@ -54,8 +54,7 @@ def track_performance(func):
             LOGGER.info(f"Function {func.__name__} CPU time: {cpu_time_line.strip()}")
 
             # Output memory usage
-            LOGGER.info(f"Memory usage for {func.__name__}:")
-            LOGGER.info(f"Current: {current / 10**6:.6f} MB; Peak: {peak / 10**6:.6f} MB")
+            LOGGER.info(f"Memory usage for {func.__name__}: Current: {current / 10**6:.6f} MB; Peak: {peak / 10**6:.6f} MB")
 
             # Output runtime
             LOGGER.info(f"Function {func.__name__} took {runtime:.6f} seconds to execute.")
