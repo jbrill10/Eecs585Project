@@ -10,6 +10,11 @@ import pstats
 import io
 import tracemalloc
 from functools import wraps
+import logging
+import sys
+
+LOGGER = logging.getLogger(__name__)
+LOG_FILE = "output.log"
 
 
 ## DECORATE A FUNCTION WITH THIS TO MEASURE RUNTIME, CPU USAGE, MEMORY USAGE
@@ -46,14 +51,14 @@ def track_performance(func):
             ps.print_stats()
             s.seek(0)
             cpu_time_line = s.readline()  # Read the total CPU time from the first line
-            print(f"Function {func.__name__} CPU time: {cpu_time_line.strip()}")
+            LOGGER.info(f"Function {func.__name__} CPU time: {cpu_time_line.strip()}")
 
             # Output memory usage
-            print(f"Memory usage for {func.__name__}:")
-            print(f"Current: {current / 10**6:.6f} MB; Peak: {peak / 10**6:.6f} MB")
+            LOGGER.info(f"Memory usage for {func.__name__}:")
+            LOGGER.info(f"Current: {current / 10**6:.6f} MB; Peak: {peak / 10**6:.6f} MB")
 
             # Output runtime
-            print(f"Function {func.__name__} took {runtime:.6f} seconds to execute.")
+            LOGGER.info(f"Function {func.__name__} took {runtime:.6f} seconds to execute.")
 
         return result
     return wrapper
@@ -146,6 +151,17 @@ def main():
     """
     # Create dataset instance
     dataset = PlatypusDataset()
+
+    # Configure logging with level and timestamp
+    logging.basicConfig(
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(LOG_FILE, mode="w"),
+        ],
+        level=logging.DEBUG,
+        format="%(asctime)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
     # Get and print the length
     dataset_size = dataset.get_length()
