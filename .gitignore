@@ -157,6 +157,8 @@ cython_debug/
 .DS_Store
 .deepeval_telemtry.txt
 wandb
+.deepeval
+meta-llama
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
