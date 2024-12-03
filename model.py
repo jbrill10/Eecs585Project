@@ -11,6 +11,8 @@ import transformers
 from datetime import datetime
 from accelerate import PartialState
 import matplotlib.pyplot as plt
+access_token = "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"
+torch.cuda.empty_cache()
 
 wandb.login()
 wandb_project = "llama-finetune"
@@ -54,9 +56,9 @@ def generate_and_tokenize_prompt2(prompt):
     result["labels"] = result["input_ids"].copy()
     return result
     
-# base_model_id = "meta-llama/Llama-3.1-8B"
-base_model_id = "HuggingFaceH4/tiny-random-LlamaForCausalLM"
-model = AutoModelForCausalLM.from_pretrained(base_model_id, quantization_config=bnb_config, device_map={"": PartialState().process_index},)
+base_model_id = "meta-llama/Llama-3.1-8B"
+# base_model_id = "HuggingFaceH4/tiny-random-LlamaForCausalLM"
+model = AutoModelForCausalLM.from_pretrained(base_model_id, quantization_config=bnb_config, device_map={"": PartialState().process_index}, token=access_token, )
 model.gradient_checkpointing_enable()
 
 tokenizer = AutoTokenizer.from_pretrained(
@@ -65,15 +67,16 @@ tokenizer = AutoTokenizer.from_pretrained(
     add_eos_token=True,
     add_bos_token=True,
     use_fast=False, # needed for now, should be fixed soon
-    trust_remote_code=True
+    trust_remote_code=True,
+    token=access_token
 )
 tokenizer.pad_token = tokenizer.eos_token
 
 accelerator = Accelerator()
 
 def plot_data_lengths(tokenized_train_dataset, tokenized_val_dataset):
-    lengths = [len(x['input_ids']) for x in tokenized_train_dataset[0:25]]
-    lengths += [len(x['input_ids']) for x in tokenized_val_dataset[0:25]]
+    lengths = [len(x['input_ids']) for x in tokenized_train_dataset]
+    lengths += [len(x['input_ids']) for x in tokenized_val_dataset]
     print(len(lengths))
 
     # Plotting the histogram
@@ -122,7 +125,7 @@ def finetune_new_model_on_dataset(tokenized_train_dataset, tokenized_val_dataset
             per_device_train_batch_size=2,
             gradient_checkpointing=True,
             gradient_accumulation_steps=4,
-            max_steps=1000,
+            max_steps=500,
             learning_rate=2.5e-5,
             logging_steps=50,
             bf16=True,
@@ -145,7 +148,7 @@ def finetune_new_model_on_dataset(tokenized_train_dataset, tokenized_val_dataset
 def main():
     dataset = PlatypusDataset()
     
-    data_sources = ['scienceqa', 'scibench','airoboros','reclor','MATH/PRM-800K']
+    data_sources = ['reclor','MATH/PRM-800K','airoboros']
 
     for source in data_sources:
         print(f"source: {source}")
