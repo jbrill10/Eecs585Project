@@ -144,14 +144,17 @@ def finetune_new_model_on_dataset(tokenized_train_dataset, tokenized_val_dataset
 def main():
     dataset = PlatypusDataset()
     
+    # This code is configured to run ablation sampling
+    # If running statistical sampling, use appropriate methods from dataset.py
+    
+    
     data_sources = dataset.get_sources()
 
     for source in data_sources:
         print(f"source: {source}")
         train_dataset = dataset.get_train_data_without_source(source)
         val_dataset = dataset.get_val_data_without_source(source)
-        # tokenized_train_dataset = train_dataset.map(generate_and_tokenize_prompt2)
-        # tokenized_val_dataset = val_dataset.map(generate_and_tokenize_prompt2)
+
         tokenized_train_dataset = [generate_and_tokenize_prompt2(point).to("cuda") for point in train_dataset]
         tokenized_val_dataset = [generate_and_tokenize_prompt2(point).to("cuda") for point in val_dataset]
         print(f"Training set size: {len(tokenized_train_dataset)}")
