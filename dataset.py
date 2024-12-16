@@ -16,11 +16,14 @@ import sys
 LOGGER = logging.getLogger(__name__)
 LOG_FILE = "output.log"
 
-
 ## DECORATE A FUNCTION WITH THIS TO MEASURE RUNTIME, CPU USAGE, MEMORY USAGE
+
 def track_performance(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        # Configure logging for this specific call
+        
+        LOGGER.info(f"Executing function: {func.__name__}")
         # Start tracking memory
         tracemalloc.start()
 
@@ -51,14 +54,23 @@ def track_performance(func):
             ps.print_stats()
             s.seek(0)
             cpu_time_line = s.readline()  # Read the total CPU time from the first line
-            LOGGER.info(f"Function {func.__name__} CPU time: {cpu_time_line.strip()}")
+            arg_names = func.__code__.co_varnames[:func.__code__.co_argcount]
+            arg_values = dict(zip(arg_names, args))
+
+                
+            # if 'frac' in arg_values:
+            #     LOGGER.info(f"ARGUMENTS: {arg_values['frac']}")
+            if 'source_name' in arg_names:
+                LOGGER.info(f"Function {func.__name__} EXCLUDING_SOURCE={arg_values['source_name']} CPU time: {cpu_time_line.strip()}")
+            else:
+                LOGGER.info(f"Function {func.__name__} CPU time: {cpu_time_line.strip()}")
 
             # Output memory usage
             LOGGER.info(f"Memory usage for {func.__name__}: Current: {current / 10**6:.6f} MB; Peak: {peak / 10**6:.6f} MB")
 
             # Output runtime
             LOGGER.info(f"Function {func.__name__} took {runtime:.6f} seconds to execute.")
-
+            
         return result
     return wrapper
 
@@ -89,7 +101,6 @@ class PlatypusDataset:
         return [item for item in self.val_dataset if item['data_source'] != source_name]
 
     
-    @track_performance
     def stratified_sample(self, frac=0.1):
         # Stratified sampling using data_source
 
@@ -141,7 +152,6 @@ class PlatypusDataset:
         '''
         return [item for item in self.data if item['data_source'] == source_name]
     
-    @track_performance
     def get_sources(self):
         sources = set()
         
@@ -160,17 +170,17 @@ def main():
     """
     # Create dataset instance
     dataset = PlatypusDataset()
-
+    
     # Configure logging with level and timestamp
-    logging.basicConfig(
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler(LOG_FILE, mode="w"),
-        ],
-        level=logging.DEBUG,
-        format="%(asctime)s %(levelname)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    # logging.basicConfig(
+    #     handlers=[
+    #         logging.StreamHandler(sys.stdout),
+    #         logging.FileHandler(LOG_FILE, mode="w"),
+    #     ],
+    #     level=logging.DEBUG,
+    #     format="%(asctime)s %(levelname)s %(message)s",
+    #     datefmt="%Y-%m-%d %H:%M:%S",
+    # )
 
     # Get and print the length
     dataset_size = dataset.get_length()
@@ -179,13 +189,14 @@ def main():
     # print(dataset.get_item(0))
     
     data_sources = dataset.get_sources()
+    data = dataset.get_data_without_source('ARB')
     print(data_sources)
     
     for source in data_sources:
         train = dataset.get_train_data_without_source(source)
         test = dataset.get_val_data_without_source(source)
-    # Random sampling
-    sampled_dataset = dataset.random_sample(0.1)
+    # # Random sampling
+    # sampled_dataset = dataset.random_sample(0.1)
     
     # Stratified sampling
     # sampled_dataset = dataset.stratified_sample(0.1)
@@ -193,14 +204,15 @@ def main():
     # Clustering
     # sampled_dataset = dataset.clustering(3)
 
-    # data_sources = dataset.get_sources()
+    data_sources = dataset.get_sources()
+    print("source, data_points")
 
-    # for source in data_sources:
-    #     ablated_dataset = dataset.get_data_without_source(source)
-    #     source_dataset = dataset.get_data_from_source(source)
+    for source in data_sources:
+        source_dataset = dataset.get_data_from_source(source)
         
-        # print(source)
-        # print("Train: " + str(len(train)))
+        print(f"{source}, {len(source_dataset)}")
+        
+        # print("Train: " + str(len(train))")
         # print("Test: " + str(len(test)))
 
 if __name__ == "__main__":
