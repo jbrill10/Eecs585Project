@@ -11,7 +11,7 @@ import transformers
 from datetime import datetime
 from accelerate import PartialState
 import matplotlib.pyplot as plt
-token = "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"
+token = "FIXME HUGGINGFACE TOKEN HERE"
 
 wandb.login()
 wandb_project = "llama-finetune"
@@ -74,8 +74,8 @@ tokenizer.pad_token = tokenizer.eos_token
 accelerator = Accelerator()
 
 def plot_data_lengths(tokenized_train_dataset, tokenized_val_dataset):
-    lengths = [len(x['input_ids']) for x in tokenized_train_dataset[0:25]]
-    lengths += [len(x['input_ids']) for x in tokenized_val_dataset[0:25]]
+    lengths = [len(x['input_ids']) for x in tokenized_train_dataset]
+    lengths += [len(x['input_ids']) for x in tokenized_val_dataset]
     print(len(lengths))
 
     # Plotting the histogram

@@ -4,6 +4,7 @@
 A couple of library is required for running the evaluation and finetuning pipelines:
 - Cuda
 - Pytorch
+
 Mine ran with Python 3.10 and CUDA 12.0
 
 Additional libraries can be installed in Mistral-7B file. There is a section at the top that install required dependencies. After this, running the separate notebooks should be very straightforward.
